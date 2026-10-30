@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.nebysse.minetomesh.job.ExportJobManager;
 import com.nebysse.minetomesh.job.ManagedJob;
 import com.nebysse.minetomesh.output.ExportName;
+import com.nebysse.minetomesh.sable.RegionExport;
 import com.nebysse.minetomesh.world.BlockPoint;
 import com.nebysse.minetomesh.world.Selection;
 import com.nebysse.minetomesh.world.SelectionStore;
@@ -47,7 +48,18 @@ public final class MineToMeshCommands {
                 .then(Commands.literal("status")
                         .executes(context -> status()))
                 .then(Commands.literal("cancel")
-                        .executes(context -> cancel())));
+                        .executes(context -> cancel()))
+                // Sable region export: consumes the selection the Sable blueprint tool is showing
+                // rather than pos1/pos2, because it exports what that tool selected - including
+                // the structures Sable stores in sub-levels. See com.nebysse.minetomesh.sable.
+                .then(Commands.literal("sable")
+                        .then(Commands.argument("name", StringArgumentType.string())
+                                .executes(MineToMeshCommands::exportSable))));
+    }
+
+    private static int exportSable(CommandContext<CommandSourceStack> context) {
+        return RegionExport.run(context.getSource(),
+                StringArgumentType.getString(context, "name"));
     }
 
     private int setPoint(int index) {
